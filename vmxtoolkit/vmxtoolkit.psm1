@@ -3559,70 +3559,40 @@ function Set-VMXNetworkAdapter {
 
 
 
-<#
-	.SYNOPSIS
-		synopsis
-
-	.DESCRIPTION
-		description
-
-	.PARAMETER  config
-		A description of the config parameter.
-
-	.EXAMPLE
-		PS C:\> Connect-VMXNetworkAdapter -config $value1
-		'This is the output'
-		This example shows how to call the Set-VMXNetworkAdapter function with named parameters.
-
-	.NOTES
-		Additional information about the function or script.
-
-#>
-function Connect-VMXNetworkAdapter
-{
-	[CmdletBinding(HelpUri = "https://github.com/bottkars/vmxtoolkit/wiki")]
-	param
-	(
+function Connect-VMXNetworkAdapter {
+    [CmdletBinding(HelpUri = "https://github.com/bottkars/vmxtoolkit/wiki")]
+    param (
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $True)][Alias('NAME','CloneName')][string]$VMXName,
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]$config,
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)][ValidateRange(0,9)][int]$Adapter
-	)
-	
-	Begin
-	{
-		
-	}
-	Process
-	{
-        if ((get-vmx -Path $config).state -eq "stopped")
-        {
-		$Content = Get-Content -Path $config
-		Write-verbose "ethernet$Adapter.present"
-		if (!($Content -match "ethernet$Adapter.present")) { Write-Warning "Adapter not present" }
-        else
-            {
-		    $Content = $Content -notmatch "ethernet$Adapter.StartConnected"
-            $Content += 'ethernet'+$Adapter+'.StartConnected = "True"'
-            $Content | Set-Content -Path $config
-            $object = New-Object -TypeName psobject
-		    $Object | Add-Member -MemberType NoteProperty -Name VMXName -Value $VMXName
-		    $object | Add-Member -MemberType NoteProperty -Name Adapter -Value "Ethernet$Adapter"
-		    $object | Add-Member -MemberType NoteProperty -Name Connected -Value True
-            Write-Output $object
-            }
-        }
-        
-		else
-        {
-        Write-Warning "VM must be in stopped state"
-        }
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]$config,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)][ValidateRange(0,9)][int]$Adapter)
 
-	}
-	End
-	{
-		
-	}
-}
+    begin { }
+
+    process {
+        if ((get-vmx -Path $config).state -eq "stopped") {
+            $Content = Get-Content -Path $config
+            Write-verbose "ethernet$Adapter.present"
+            if (!($Content -match "ethernet$Adapter.present")) {
+                Write-Warning "Adapter not present"
+            } else {
+                $Content = $Content -notmatch "ethernet$Adapter.StartConnected"
+                $Content += 'ethernet'+$Adapter+'.StartConnected = "True"'
+                $Content | Set-Content -Path $config
+                $object = New-Object -TypeName psobject
+                $object | Add-Member -MemberType NoteProperty -Name VMXName -Value $VMXName
+                $object | Add-Member -MemberType NoteProperty -Name Config -Value $config
+                $object | Add-Member -MemberType NoteProperty -Name Adapter -Value "Ethernet$Adapter"
+                $object | Add-Member -MemberType NoteProperty -Name Connected -Value True
+                Write-Output $object
+            }
+        } else {
+            Write-Warning "VM must be in stopped state"
+        }
+    }
+
+    end { }
+} #function Connect-VMXNetworkAdapter
+
 
 
 function Connect-VMXcdromImage
